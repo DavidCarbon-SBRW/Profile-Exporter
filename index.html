@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Profile Exporter</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  </head>
+  <body>
+    <div id="content" class="container">
+      <h1>Profile Exporter</h1>
+      <div class="alert" :class="['alert-' + messageType]" v-if="message && message.length">
+        <strong>{{ message }}</strong>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <form>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Server</label>
+                <select class="form-control col-sm-9" v-model="server">
+                    <option disabled selected>Select a server...</option>
+                    <option v-for="(server, key) in servers" :key="key" :value="server.ip_address">{{ server.name }}</option>
+                  </select>
+            </div>
+            <div class="form-group row">
+                  <label for="inputEmail3" class="col-sm-2 col-form-label">Email</label>
+                  <div class="col-sm-10">
+                    <input type="email" class="form-control" id="inputEmail3" placeholder="Email" v-model="email">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="inputPassword3" class="col-sm-2 col-form-label">Password</label>
+                  <div class="col-sm-10">
+                    <input type="password" class="form-control" id="inputPassword3" placeholder="Password" v-model="password">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-10">
+                    <button type="submit" class="btn btn-primary" 
+                      @click.prevent="submit"
+                      :disabled="!canSubmit" 
+                      :class="{'disabled': !canSubmit}">Export</button>
+                  </div>
+                </div>
+              </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  <footer>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js" integrity="sha256-mpnrJ5DpEZZkwkE1ZgkEQQJW/46CSEh/STrZKOB/qoM=" crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js" integrity="sha256-FtWfRI+thWlNz2sB3SJbwKx5PgMyKIVgwHCTwa3biXc=" crossorigin="anonymous"></script>
+      <script>
+        new Vue({
+          el: '#content',
+          data: function() {
+            return {
+              servers: [],
+              server: '',
+              email: '',
+              password: '',
+              message: '',
+              messageType: '',
+            }
+          },
+          mounted: function() {
+            this.loadServers()
+          },
+          computed: {
+            canSubmit: function() {
+              return this.server.length
+                && this.email.length 
+                && this.password.length
+            }
+          },
+          methods: {
+            submit: function() {
+              this.message = ''
+              axios.post('/export', { server: this.server, email: this.email, password: this.password }, { responseType: 'arraybuffer' })
+                .then(function(response) {
+                  var url = window.URL.createObjectURL(new Blob([response.data]));
+                  var link = document.createElement('a');
+                  link.href = url;
+                  var date = new Date().toLocaleString().replace(/\//g, '-').replace(', ', '_').replace(/:/g, '-').replace(/ /g, '')
+                  link.setAttribute('download', "dump-" + date + ".zip");
+
+                  document.body.appendChild(link);
+                  link.click();
+
+                  this.messageType = 'success'
+                  this.message = 'Done!'
+                  this.server = ''
+                  this.email = ''
+                  this.password = ''
+                }.bind(this))
+                .catch(function(error) {
+                    this.message = error.response.data
+                    this.messageType = 'danger'
+                }.bind(this))
+            },
+            loadServers: function() {
+		    this.servers = [{
+    "id": "worldonline",
+    "name": "World Online PL",
+    "ip_address": "http://145.239.5.103:8680/soapbox-race-core/Engine.svc",
+    "distribution_url": "http://mods.worldunited.gg/worldonline",
+    "discord_presence_key": "worldonline",
+    "category": "OFFICIAL"
+}, {
+    "id": "apex",
+    "name": "Apex Closed Beta",
+    "ip_address": "http://35.237.16.88/soapbox-race-core/Engine.svc",
+    "distribution_url": "",
+    "discord_presence_key": "apexopen",
+    "category": "OFFICIAL"
+}, {
+    "id": "worldevolved",
+    "name": "World Evolved V2",
+    "ip_address": "http://78.107.251.45:8680/soapbox-race-core/Engine.svc",
+    "distribution_url": "http://mods.worldunited.gg/worldevolved",
+    "discord_presence_key": "worldevolved",
+    "category": "OFFICIAL"
+}, {
+    "id": "hueracers",
+    "name": "HUE Racers",
+    "ip_address": "http://200.98.139.241:8680/soapbox-race-core/Engine.svc",
+    "distribution_url": "",
+    "discord_presence_key": "nfsw",
+    "category": "OFFICIAL"
+}, {
+    "id": "zestysrv",
+    "name": "Zesty's Server",
+    "ip_address": "http://180.97.28.12:8680/soapbox-race-core/Engine.svc",
+    "distribution_url": "",
+    "discord_presence_key": "nfsw",
+    "category": "POWER"
+}, {
+    "id": "nightriderz",
+    "name": "NightRiderz",
+    "ip_address": "http://149.202.87.33:8680/soapbox-race-core/Engine.svc",
+    "distribution_url": "http://mods.worldunited.gg/nightriderz",
+    "discord_presence_key": "nr",
+    "category": "POWER"
+}, {
+    "id": "frss",
+    "name": "FreeRoam SparkServer",
+    "ip_address": "https://core.sparkserver.eu/soapbox-race-core/Engine.svc",
+    "distribution_url": "",
+    "discord_presence_key": "frcs",
+    "category": "COMMUNITY"
+}];
+      /*          axios.get('http://launcher.worldunited.gg/serverlist.json').then(function(response) {
+			this.servers = response.data.filter(function(s) {
+		//		return s.id !== "worldonline";
+				return true;
+			});
+                }.bind(this))*/
+            }
+          }
+        })
+      </script>
+  </footer>
+</html>
